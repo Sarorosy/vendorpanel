@@ -1,22 +1,53 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import Signup from "./pages/Signup";
-import './style.css';
 import Signin from "./pages/Signin";
+import Dashboard from "./pages/Dashboard";
+import Orders from "./pages/Orders"; // Create an Orders page
+import VendorLayout from "./layout/VendorLayout";
+import './output.css';
+import './style.css';
+
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>; 
+  }
+
+  return user ? children : <Navigate to="/signin" />;
+};
 
 
 const App = () => {
-  const isLoggedIn = localStorage.getItem("vendorToken");
-
   return (
-    <Router>
-      <Toaster position="top-center" />
-      <Routes>
-        <Route path="/signup" element={!isLoggedIn ? <Signup /> : <Navigate to="/dashboard" />} />
-        <Route path="/signin" element={!isLoggedIn ? <Signin /> : <Navigate to="/dashboard" />} />
-        <Route path="*" element={<Navigate to="/signup" />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Toaster position="top-center" />
+        <Routes>
+          {/* Auth Routes */}
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/signin" element={<Signin />} />
+
+          {/* Vendor Layout with Protected Routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <VendorLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="orders" element={<Orders />} />
+          </Route>
+
+          {/* Fallback Route */}
+          <Route path="*" element={<Navigate to="/signin" />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 };
 

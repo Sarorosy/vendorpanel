@@ -2,9 +2,11 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";
 
 const Signup = () => {
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -14,7 +16,7 @@ const Signup = () => {
   });
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(1); // 1: Form, 2: OTP Verification
+  const [step, setStep] = useState(1);
   const navigate = useNavigate();
 
   const isFormValid = Object.values(formData).every((value) => value.trim() !== "");
@@ -26,28 +28,34 @@ const Signup = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     if (!isFormValid) return;
-    setStep(2); // Show OTP field
+    setStep(2);
     toast.success(`OTP sent to ${formData.email}`);
   };
 
-  const handleOtpVerification = () => {
+  const handleOtpVerification = async () => {
     setLoading(true);
     if (otp === "123456") {
       toast.success("OTP Verified! Signing up...");
       
-      axios.post("https://your-api.com/vendor/signup", formData)
-        .then((res) => {
-          localStorage.setItem("vendorToken", res.data.token);
-          navigate("/dashboard");
-        })
-        .catch((error) => {
-          toast.error(error.response?.data?.message || "Signup failed!");
-          setStep(1); // Go back to form if signup fails
-        })
-        .finally(() => setLoading(false));
+      try {
+        //const res = await axios.post("https://your-api.com/vendor/signup", formData);
+        const userData = {
+          name: formData.company,  // Assume company is the vendor name
+          email: formData.email,
+          token: "12345678qwertyuiosdxcfvghjk", //res.data.token
+        };
+        
+        login(userData); // Store user globally
+        navigate("/dashboard");
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Signup failed!");
+        setStep(1);
+      } finally {
+        setLoading(false);
+      }
     } else {
       toast.error("Invalid OTP!");
-      setLoading(false)
+      setLoading(false);
     }
   };
 
