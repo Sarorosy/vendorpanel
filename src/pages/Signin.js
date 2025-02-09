@@ -3,12 +3,15 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate, Link } from "react-router-dom";
 import Loader from "../components/Loader";
+import { useAuth } from "../context/AuthContext";
 
 const Signin = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+
+  const { login } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -22,17 +25,34 @@ const Signin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
-      const res = await axios.post("https://your-api.com/vendor/signin", formData);
-      localStorage.setItem("vendorToken", res.data.token);
-      toast.success("Signin successful!");
-      navigate("/dashboard");
+        const res = await axios.post("https://ryupunch.com/leafly/api/Auth/login", {
+            email_id: formData.email,
+            password: formData.password
+        });
+
+        if (res.data.status) {
+            toast.success("Signin successful!");
+            
+            const userData = {
+              name: res.data.user_data.company_name ?? formData.email, // Use company_name if available
+              email: res.data.user_data.email_id, // Get email from response
+              token: res.data.token, // Ensure the token is properly received
+          };
+
+            login(userData); // Store user globally
+            navigate("/dashboard");
+        } else {
+            toast.error(res.data.message || "Signin failed!");
+        }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Signin failed!");
+        toast.error(error.response?.data?.message || "Signin failed!");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
+
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">

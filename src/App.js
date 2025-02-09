@@ -8,6 +8,8 @@ import Orders from "./pages/Orders"; // Create an Orders page
 import VendorLayout from "./layout/VendorLayout";
 import './output.css';
 import './style.css';
+import Profile from "./pages/Profile";
+import ProductsPage from "./pages/ProductsPage";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -23,7 +25,7 @@ const ProtectedRoute = ({ children }) => {
 const App = () => {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename="vendor">
         <Toaster position="top-center" />
         <Routes>
           {/* Auth Routes */}
@@ -41,6 +43,8 @@ const App = () => {
           >
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="orders" element={<Orders />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="products" element={<ProductsPage />} />
           </Route>
 
           {/* Fallback Route */}

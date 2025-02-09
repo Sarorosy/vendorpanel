@@ -1,18 +1,12 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import Header from "../components/Header";
 
 const VendorLayout = () => {
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-gray-100">
       <Sidebar />
-      
-      <div className="flex flex-col flex-1">
-        <Header />
-        
-        <div className="p-4">
-          <Outlet />
-        </div>
+      <div className="flex-1 p-6 overflow-y-scroll ">
+        <Outlet />
       </div>
     </div>
   );

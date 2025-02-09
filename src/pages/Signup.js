@@ -28,36 +28,60 @@ const Signup = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     if (!isFormValid) return;
-    setStep(2);
-    toast.success(`OTP sent to ${formData.email}`);
-  };
 
-  const handleOtpVerification = async () => {
     setLoading(true);
-    if (otp === "123456") {
-      toast.success("OTP Verified! Signing up...");
-      
-      try {
-        //const res = await axios.post("https://your-api.com/vendor/signup", formData);
-        const userData = {
-          name: formData.company,  // Assume company is the vendor name
-          email: formData.email,
-          token: "12345678qwertyuiosdxcfvghjk", //res.data.token
-        };
-        
-        login(userData); // Store user globally
-        navigate("/dashboard");
-      } catch (error) {
-        toast.error(error.response?.data?.message || "Signup failed!");
-        setStep(1);
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      toast.error("Invalid OTP!");
-      setLoading(false);
+    const payload = {
+      email_id : formData.email,
+      password : formData.password,
+      company_name : formData.company,
+      phone : formData.phone,
+      location : formData.location
     }
-  };
+    try {
+        const response = await axios.post("https://ryupunch.com/leafly/api/Auth/signup", payload, {
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (response.data.status) {
+            toast.success(`OTP sent to ${formData.email}`);
+            setStep(2);
+        } else {
+            toast.error(response.data.message || "Signup failed!");
+        }
+    } catch (error) {
+        toast.error(error.response?.data?.message || "Signup failed! Try again.");
+    } finally {
+        setLoading(false);
+    }
+};
+
+
+const handleOtpVerification = async () => {
+  setLoading(true);
+
+  try {
+      const response = await axios.post("https://ryupunch.com/leafly/api/Auth/verify_otp", {
+          email_id: formData.email,
+          otp: otp,
+      });
+
+      if (response.data.status) {
+          toast.success(response.data.message);
+          
+        
+          navigate("/signin");
+      } else {
+          toast.error(response.data.message || "OTP verification failed!");
+      }
+  } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong!");
+  } finally {
+      setLoading(false);
+  }
+};
+
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">

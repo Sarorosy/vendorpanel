@@ -1,28 +1,32 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { set, get, del } from "idb-keyval"; // Import IndexedDB helper
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("vendorUser"));
-    if (storedUser) {
-      console.log("storeduser", storedUser);
-      setUser(storedUser);
-    }
-    setLoading(false); // Set loading to false after fetching user
+    const fetchUser = async () => {
+      const storedUser = await get("vendorUser");
+      if (storedUser) {
+        setUser(storedUser);
+      }
+      setLoading(false);
+    };
+
+    fetchUser();
   }, []);
 
-  const login = (userData) => {
+  const login = async (userData) => {
     setUser(userData);
-    localStorage.setItem("vendorUser", JSON.stringify(userData));
+    await set("vendorUser", userData);
   };
 
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
-    localStorage.removeItem("vendorUser");
+    await del("vendorUser");
   };
 
   return (
