@@ -7,39 +7,62 @@ import AddProduct from "./AddProduct";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
+import StrainDetails from "./StrainDetails";
+import { AnimatePresence } from "framer-motion";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [addFormOpen, setAddFormOpen] = useState(false);
+  const [detailsTabOpen, setDetailsTabOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
   const [activeTab, setActiveTab] = useState("Live");
+  const { user } = useAuth();
 
   DataTable.use(DT);
 
   useEffect(() => {
-    setTimeout(() => {
-      setProducts([
-        { id: 1, name: "Cherry Pie", image: "https://placehold.co/600x400.png", status: "Available", createdOn: "2024-02-08" },
-        { id: 2, name: "Blue Dream", image: "https://placehold.co/600x400.png", status: "Out of Stock", createdOn: "2024-02-07" },
-        { id: 3, name: "Green Crack", image: "https://placehold.co/600x400.png", status: "Pending", createdOn: "2024-02-06" },
-      ]);
-      setLoading(false);
-    }, 2000);
-  }, []);
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch("https://ryupunch.com/leafly/api/Product/list_strains", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        const result = await response.json();
+
+        if (result.status) {
+          setProducts(result.data);
+        } else {
+          toast.error(result.message || "Failed to fetch products");
+        }
+      } catch (error) {
+        toast.error("Error fetching products");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [user.token]);
 
   const toggleStatus = (id) => {
     setProducts((prev) =>
       prev.map((product) =>
         product.id === id
           ? {
-              ...product,
-              status:
-                product.status === "Available"
-                  ? "Out of Stock"
-                  : product.status === "Out of Stock"
+            ...product,
+            status:
+              product.status === "Available"
+                ? "Out of Stock"
+                : product.status === "Out of Stock"
                   ? "Available"
                   : "Pending",
-            }
+          }
           : product
       )
     );
@@ -47,7 +70,8 @@ const ProductsPage = () => {
   };
 
   const handleView = (id) => {
-    toast.success(`Viewing product ID: ${id}`);
+    setSelectedId(id);
+    setDetailsTabOpen(true);
   };
 
   const handleEdit = (id) => {
@@ -64,23 +88,58 @@ const ProductsPage = () => {
   const columns = [
     {
       title: "Image",
-      data: "image",
-      render: (data) => `<img src='${data}' class='w-12 h-12 rounded-lg'/>`,
+      data: "images",
+      render: (data) => {
+        try {
+          const imagesArray = JSON.parse(data); // Parse the string into an array
+          if (Array.isArray(imagesArray) && imagesArray.length > 0) {
+            const imageUrl = `https://ryupunch.com/leafly/uploads/products/${imagesArray[0]}`;
+            return `<img src='${imageUrl}' class='w-12 h-12 rounded-lg' onerror="this.onerror=null;this.src='https://placehold.co/50x50?text=No+Image';"/>`;
+          }
+        } catch (error) {
+          console.error("Error parsing images:", error);
+        }
+        return `<img src='https://placehold.co/50x50?text=No+Image' class='w-12 h-12 rounded-lg'/>`;
+      },
     },
     { title: "Name", data: "name" },
-    { title: "Created On", data: "createdOn" },
+    {
+      title: "Created On",
+      data: "created_at",
+      render: (data) => {
+        if (!data) return "N/A"; // Handle missing data
+        const date = new Date(data);
+
+        // Format: "10 Feb, 2025"
+        const formattedDate = date.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+
+        return formattedDate;
+      },
+    },
     {
       title: "Status",
-      data: "status",
-      render: (data, type, row) =>
-        `<button class='status-btn px-3 py-1 rounded-full text-sm font-medium ${
-          data == "Available"
+      data: null, // Use `null` since we are computing it dynamically
+      render: (data, type, row) => {
+        let displayText = row.status == 0
+          ? "Pending"
+          : row.stock == 1
+            ? "Stock Available"
+            : "Out of Stock";
+
+        let bgColor = row.status == 0
+          ? "bg-yellow-200 text-yellow-800"
+          : row.stock == 1
             ? "bg-green-200 text-green-800"
-            : data == "Out of Stock"
-            ? "bg-red-200 text-red-800"
-            : "bg-yellow-200 text-yellow-800"
-        }'>${data}</button>`,
+            : "bg-red-200 text-red-800";
+
+        return `<button class='status-btn px-3 py-1 rounded-full text-sm font-medium ${bgColor}'>${displayText}</button>`;
+      },
     },
+
     {
       title: "Actions",
       data: "id",
@@ -110,9 +169,8 @@ const ProductsPage = () => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-lg ${
-              activeTab === tab ? "bg-green-600 text-white" : "bg-gray-300 text-gray-800"
-            } mx-1`}
+            className={`px-4 py-2 rounded-lg ${activeTab === tab ? "bg-green-800 text-white" : "bg-gray-300 text-gray-800"
+              } mx-1`}
           >
             {tab}
           </button>
@@ -136,7 +194,7 @@ const ProductsPage = () => {
           </div>
         ) : (
           <DataTable
-            data={products.filter((product) => (activeTab === "Live" ? product.status !== "Pending" : product.status === "Pending"))}
+            data={products.filter((product) => (activeTab === "Live" ? product.status != "0" : product.status == "0"))}
             columns={columns}
             options={{
               pageLength: 10,
@@ -151,8 +209,13 @@ const ProductsPage = () => {
           />
         )}
       </div>
+      <AnimatePresence>
+        {addFormOpen && <AddProduct onClose={() => setAddFormOpen(false)} />}
 
-      {addFormOpen && <AddProduct onClose={() => setAddFormOpen(false)} />}
+        {detailsTabOpen && (
+          <StrainDetails strainId={selectedId} onClose={() => { setDetailsTabOpen(false) }} />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
