@@ -76,7 +76,7 @@ const StoreProfile = () => {
           </div>
 
           {/* Store Description */}
-          <p className="text-gray-600">{storeData.description}</p>
+          <p className="text-gray-600">{user.description}</p>
         </div>
       </div>
       <AnimatePresence>
