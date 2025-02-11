@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Home, Package, ChevronLeft, ChevronRight, LogOut, Store } from "lucide-react";
+import { Home, Package, ChevronLeft, ChevronRight, LogOut, Store, BadgeCheck } from "lucide-react";
 import cannabislogo from "../assets/weedlogo.svg";
 import { useAuth } from "../context/AuthContext";
 
@@ -8,17 +8,20 @@ import { useAuth } from "../context/AuthContext";
 const LocationComponent = () => {
   const [location, setLocation] = useState(null);
   const [error, setError] = useState(null);
+  const {user} = useAuth();
   
 
   const getLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setLocation({
+          const newLocation = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
-          });
+          };
+          setLocation(newLocation);
           setError(null);
+          sendLocation(newLocation);
         },
         (err) => {
           setError("Location access denied. Click to retry.");
@@ -27,6 +30,36 @@ const LocationComponent = () => {
       );
     } else {
       setError("Geolocation is not supported by this browser.");
+    }
+  };
+
+  const sendLocation = async (loc) => {
+    if (!user?.token) {
+      console.error("No authentication token found.");
+      return;
+    }
+
+    try {
+      const response = await fetch("https://ryupunch.com/leafly/api/Vendor/update_location", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({
+          latitude: loc.lat,
+          longitude: loc.lng,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        console.log("Location updated successfully:", data);
+      } else {
+        console.error("Failed to update location:", data.message);
+      }
+    } catch (error) {
+      console.error("Error updating location:", error);
     }
   };
 
@@ -102,13 +135,14 @@ const Sidebar = () => {
       <Link to="/profile">
         <div className={`${isExpanded ? "flex" : ""} flex justify-center items-center mb-4`}>
           <img
-            src="https://i.pravatar.cc/40"
+            src={user.profile ? "https://ryupunch.com/leafly/uploads/vendors/" +user.profile : "https://i.pravatar.cc/40"}
             alt="User Avatar"
             className="w-10 h-10 rounded-full border border-white shadow-lg"
           />
-          {isExpanded && <p className="ml-2 text-xs font-medium tracking-wide opacity-80">{user.name}</p>}
+          {isExpanded && <p className="flex items-center ml-2 text-xs font-medium tracking-wide opacity-80">{user.company_name} <BadgeCheck size={19} className=" text-green-300 ml-1 " /></p>}
         </div>
       </Link>
+      
 
       {/* Location Display */}
       {isExpanded && <LocationComponent />}

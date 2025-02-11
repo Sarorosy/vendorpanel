@@ -8,8 +8,8 @@ import Orders from "./pages/Orders"; // Create an Orders page
 import VendorLayout from "./layout/VendorLayout";
 import './output.css';
 import './style.css';
-import Profile from "./pages/Profile";
 import ProductsPage from "./pages/ProductsPage";
+import StoreProfile from "./pages/StoreProfile";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -43,7 +43,7 @@ const App = () => {
           >
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="orders" element={<Orders />} />
-            <Route path="profile" element={<Profile />} />
+            <Route path="profile" element={<StoreProfile />} />
             <Route path="products" element={<ProductsPage />} />
           </Route>
 

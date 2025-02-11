@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import DataTable from "datatables.net-react";
 import DT from "datatables.net";
-import { Plus, Eye, Edit, Trash2 } from "lucide-react";
+import { Plus, Eye, Edit, Trash2, RefreshCcw } from "lucide-react";
 import $ from "jquery";
 import AddProduct from "./AddProduct";
 import Skeleton from "react-loading-skeleton";
@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import StrainDetails from "./StrainDetails";
 import { AnimatePresence } from "framer-motion";
+import axios from "axios";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -22,52 +23,98 @@ const ProductsPage = () => {
 
   DataTable.use(DT);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch("https://ryupunch.com/leafly/api/Product/list_strains", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("https://ryupunch.com/leafly/api/Product/list_strains", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
 
-        const result = await response.json();
+      const result = await response.json();
 
-        if (result.status) {
-          setProducts(result.data);
-        } else {
-          toast.error(result.message || "Failed to fetch products");
-        }
-      } catch (error) {
-        toast.error("Error fetching products");
-      } finally {
-        setLoading(false);
+      if (result.status) {
+        setProducts(result.data);
+      } else {
+        toast.error(result.message || "Failed to fetch products");
       }
-    };
+    } catch (error) {
+      toast.error("Error fetching products");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    
 
     fetchProducts();
   }, [user.token]);
 
-  const toggleStatus = (id) => {
-    setProducts((prev) =>
-      prev.map((product) =>
-        product.id === id
-          ? {
-            ...product,
-            status:
-              product.status === "Available"
-                ? "Out of Stock"
-                : product.status === "Out of Stock"
-                  ? "Available"
-                  : "Pending",
-          }
-          : product
-      )
-    );
-    toast.success("Status updated!");
+  const toggleStock = async (id, currentStock) => {
+    const newStock = currentStock == 1 ? 0 : 1; // Toggle stock status
+  
+    try {
+      const response = await axios.post(
+        "https://ryupunch.com/leafly/api/Product/update_strain_stock",
+        { strain_id: id, stock: newStock },
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+  
+      if (response.data.status) {
+        setProducts((prev) =>
+          prev.map((product) =>
+            product.id === id ? { ...product, stock: newStock } : product
+          )
+        );
+        toast.success("Stock status updated!");
+      } else {
+        toast.error("Failed to update stock status!");
+      }
+    } catch (error) {
+      console.error("Error updating stock:", error);
+      toast.error("Something went wrong!");
+    }
   };
+
+  const toggleStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus == 1 ? 0 : 1; // Toggle stock status
+  
+    try {
+      const response = await axios.post(
+        "https://ryupunch.com/leafly/api/Product/update_strain_status",
+        { strain_id: id, status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+  
+      if (response.data.status) {
+        setProducts((prev) =>
+          prev.map((product) =>
+            product.id === id ? { ...product, status: newStatus } : product
+          )
+        );
+        toast.success("Status updated!");
+      } else {
+        toast.error("Failed to update strain!");
+      }
+    } catch (error) {
+      console.error("Error updating strain:", error);
+      toast.error("Something went wrong!");
+    }
+  };
+  
 
   const handleView = (id) => {
     setSelectedId(id);
@@ -136,20 +183,32 @@ const ProductsPage = () => {
             ? "bg-green-200 text-green-800"
             : "bg-red-200 text-red-800";
 
-        return `<button class='status-btn px-3 py-1 rounded-full text-sm font-medium ${bgColor}'>${displayText}</button>`;
+        return `<button class='${row.status == 1 ? 'stock-btn' : ''} px-3 py-1 rounded-full text-sm font-medium ${bgColor}'>${displayText}</button>`;
       },
     },
 
     {
       title: "Actions",
-      data: "id",
-      render: (id) =>
-        `<div class="flex gap-2">
-          <button class="view-btn text-blue-500">View</button>
-          <button class="edit-btn text-green-500">Edit</button>
-          <button class="delete-btn text-red-500">Delete</button>
-        </div>`,
+      data: null, // Use `null` to access the entire row
+      render: (row) => {
+        return `
+          <div class="flex gap-2">
+            <button class="view-btn bg-blue-500 text-white px-3 py-1 rounded-md shadow-md hover:bg-blue-600 transition">
+              View
+            </button>
+            ${row.status != 1 ? `
+            <button class="edit-btn bg-orange-500 text-white px-3 py-1 rounded-md shadow-md hover:bg-orange-600 transition">
+              Edit
+            </button>` : ""}
+            <button class="delete-btn bg-red-500 text-white px-3 py-1 rounded-md shadow-md hover:bg-red-600 transition">
+              Delete
+            </button>
+          </div>
+        `;
+      },
     },
+    
+    
   ];
 
   return (
@@ -169,12 +228,15 @@ const ProductsPage = () => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-lg ${activeTab === tab ? "bg-green-800 text-white" : "bg-gray-300 text-gray-800"
+            className={`px-3 py-1 rounded-lg ${activeTab === tab ? "bg-green-800 text-white" : "bg-gray-300 text-gray-800"
               } mx-1`}
           >
             {tab}
           </button>
         ))}
+        <button onClick={fetchProducts} className={` bg-gray-200 text-gray-700 px-2 py-1 rounded-xl`} >
+          <RefreshCcw size={20} className={loading ? 'animate-spin' : ''}/>
+        </button>
       </div>
 
       <div className="bg-white shadow-md rounded-lg overflow-hidden p-4">
@@ -200,7 +262,7 @@ const ProductsPage = () => {
               pageLength: 10,
               ordering: true,
               createdRow: (row, data) => {
-                $(row).find(".status-btn").on("click", () => toggleStatus(data.id));
+                $(row).find(".stock-btn").on("click", () => toggleStock(data.id, data.stock));
                 $(row).find(".view-btn").on("click", () => handleView(data.id));
                 $(row).find(".edit-btn").on("click", () => handleEdit(data.id));
                 $(row).find(".delete-btn").on("click", () => handleDelete(data.id));
@@ -210,7 +272,7 @@ const ProductsPage = () => {
         )}
       </div>
       <AnimatePresence>
-        {addFormOpen && <AddProduct onClose={() => setAddFormOpen(false)} />}
+        {addFormOpen && <AddProduct onClose={() => setAddFormOpen(false)} finalfunction={fetchProducts}/>}
 
         {detailsTabOpen && (
           <StrainDetails strainId={selectedId} onClose={() => { setDetailsTabOpen(false) }} />

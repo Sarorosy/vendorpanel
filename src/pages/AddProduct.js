@@ -7,7 +7,7 @@ import $ from "jquery";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 
-const AddProduct = ({ onClose }) => {
+const AddProduct = ({ onClose , finalfunction}) => {
   const [formData, setFormData] = useState({
     name: "",
     images: [null], // Start with one file input
@@ -25,6 +25,7 @@ const AddProduct = ({ onClose }) => {
   const negativesRef = useRef(null);
   const helpsWithRef = useRef(null);
   const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     $(feelingsRef.current)
@@ -79,6 +80,7 @@ const AddProduct = ({ onClose }) => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     // Ensure all file inputs are filled
     if (formData.images.some(img => !img)) {
@@ -126,6 +128,9 @@ const AddProduct = ({ onClose }) => {
     } catch (error) {
         console.error("Error submitting form:", error);
         alert("Something went wrong. Please try again.");
+    }finally{
+      setLoading(false);
+      finalfunction();
     }
 };
 
@@ -213,7 +218,7 @@ const AddProduct = ({ onClose }) => {
           <option value="Insomnia">Insomnia</option>
           <option value="Lack of Appetite">Lack of Appetite</option>
         </select>
-        <button type="submit" onClick={handleSubmit} className="w-full p-3 bg-gradient-to-r from-green-500 to-green-700 text-white font-semibold rounded-lg shadow-md hover:opacity-90">
+        <button type="submit" disabled={loading} onClick={handleSubmit} className="w-full p-3 bg-gradient-to-r from-green-500 to-green-700 text-white font-semibold rounded-lg shadow-md hover:opacity-90">
           Submit
         </button>
       </form>

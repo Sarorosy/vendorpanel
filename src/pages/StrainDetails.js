@@ -79,9 +79,24 @@ const StrainDetails = ({ strainId, onClose }) => {
                 {loading ? (
                     <div className="space-y-4">
                         <Skeleton height={30} width="80%" />
-                        <Skeleton height={200} />
+                        <div className=" space-x-1 animate-pulse grid grid-cols-2">
+                            <Skeleton height={200}  />
+                            <Skeleton height={200}  />
+                        </div>
+                        
+                        <div className=" space-x-1 animate-pulse grid grid-cols-2">
+                        <Skeleton height={35}  />
+                        <Skeleton height={35}  />
+                        <Skeleton height={35}  />
+                        <Skeleton height={35}  />
+                            </div>
+                        
+
+                        <Skeleton height={20} width="50%" className="mt-3"/>
                         <Skeleton height={20} width="60%" />
-                        <Skeleton height={20} width="40%" />
+                        <Skeleton height={20} width="50%" />
+                        <Skeleton height={20} width="60%" />
+
                     </div>
                 ) : error ? (
                     <p className="text-red-500 text-center font-medium">{error}</p>

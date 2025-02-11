@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import { useNavigate, Link } from "react-router-dom";
 import Loader from "../components/Loader";
 import { useAuth } from "../context/AuthContext";
+import { RotatingLines } from "react-loader-spinner";
 
 const Signin = () => {
   const [formData, setFormData] = useState({
@@ -27,31 +28,31 @@ const Signin = () => {
     setLoading(true);
 
     try {
-        const res = await axios.post("https://ryupunch.com/leafly/api/Auth/login", {
-            email_id: formData.email,
-            password: formData.password
-        });
+      const res = await axios.post("https://ryupunch.com/leafly/api/Auth/login", {
+        email_id: formData.email,
+        password: formData.password
+      });
 
-        if (res.data.status) {
-            toast.success("Signin successful!");
-            
-            const userData = {
-              name: res.data.user_data.company_name ?? formData.email, // Use company_name if available
-              email: res.data.user_data.email_id, // Get email from response
-              token: res.data.token, // Ensure the token is properly received
-          };
+      if (res.data.status) {
+        toast.success("Signin successful!");
 
-            login(userData); // Store user globally
-            navigate("/dashboard");
-        } else {
-            toast.error(res.data.message || "Signin failed!");
-        }
+        const userData = {
+          name: res.data.user_data.company_name ?? formData.email, // Use company_name if available
+          email: res.data.user_data.email_id, // Get email from response
+          token: res.data.token, // Ensure the token is properly received
+        };
+
+        login(res.data.user_data); // Store user globally
+        navigate("/dashboard");
+      } else {
+        toast.error(res.data.message || "Signin failed!");
+      }
     } catch (error) {
-        toast.error(error.response?.data?.message || "Signin failed!");
+      toast.error(error.response?.data?.message || "Signin failed!");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
 
   return (
@@ -80,11 +81,27 @@ const Signin = () => {
           <button
             type="submit"
             disabled={!isFormValid || loading}
-            className={`w-full py-3 text-white font-medium rounded-lg transition-all ${
-              isFormValid && !loading ? "green-btn" : "green-btn-disabled cursor-not-allowed"
-            }`}
+            className={`w-full py-3 text-white flex items-center justify-center font-medium rounded-lg transition-all ${isFormValid && !loading ? "green-btn" : "green-btn-disabled cursor-not-allowed"
+              }`}
           >
-            {loading ? <Loader /> : "Sign In"}
+            {loading ? 
+            <div className="flex items-center justify-center">
+              Signing in..   
+            <RotatingLines
+              visible={true}
+              height="24"
+              width="24"
+              color="#ffffff"
+              className="bg-white text-white"
+              strokeWidth="5"
+              animationDuration="0.75"
+              ariaLabel="rotating-lines-loading"
+              wrapperStyle={{ color: "white" }}
+              wrapperClass="text-white bg-white mx-auto ml-1"
+              strokeColor ="#ffffff"
+            />
+            </div>
+             : "Sign In"}
           </button>
         </form>
         <p className="text-center mt-4">
