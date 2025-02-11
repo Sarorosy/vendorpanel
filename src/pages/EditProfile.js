@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { RotatingLines } from "react-loader-spinner";
+import { FadeLoader } from "react-spinners";
 import toast from "react-hot-toast";
 
 const EditProfile = ({ onClose }) => {
     const [formData, setFormData] = useState({
         storeName: "",
-        description : "",
+        description: "",
         phone: "",
         address: "",
         gstNumber: "",
@@ -17,7 +17,7 @@ const EditProfile = ({ onClose }) => {
         storeImage: null,
         bannerImage: null,
     });
-    const { user , login} = useAuth();
+    const { user, login } = useAuth();
     const [loading, setLoading] = useState(false);
 
     const fetchStoreDetails = async () => {
@@ -36,7 +36,7 @@ const EditProfile = ({ onClose }) => {
             if (result.status) {
                 setFormData({
                     storeName: result.data.company_name || "",
-                    description : result.data.description || "",
+                    description: result.data.description || "",
                     phone: result.data.phone || "",
                     address: result.data.location || "",
                     gstNumber: result.data.gst_number || "",
@@ -67,23 +67,23 @@ const EditProfile = ({ onClose }) => {
         setFormData({ ...formData, [e.target.name]: e.target.files[0] });
     };
 
-    
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         const formDataToSend = new FormData();
         formDataToSend.append("company_name", formData.storeName);
         formDataToSend.append("description", formData.description);
         formDataToSend.append("phone", formData.phone);
         formDataToSend.append("location", formData.address);
         formDataToSend.append("gst_number", formData.gstNumber);
-        
+
         if (formData.license) formDataToSend.append("store_license", formData.license);
         if (formData.idProof) formDataToSend.append("id_proof", formData.idProof);
         if (formData.storeImage) formDataToSend.append("profile", formData.storeImage);
         if (formData.bannerImage) formDataToSend.append("banner", formData.bannerImage);
-    
+
         try {
             setLoading(true);
             const response = await fetch("https://ryupunch.com/leafly/api/Vendor/edit_vendor_details", {
@@ -94,9 +94,9 @@ const EditProfile = ({ onClose }) => {
                 },
                 body: formDataToSend
             });
-    
+
             const result = await response.json();
-    
+
             if (result.status) {
                 toast.success("Profile updated successfully!");
                 onClose(); // Close modal on success
@@ -115,7 +115,7 @@ const EditProfile = ({ onClose }) => {
             console.log(user)
         }
     };
-    
+
 
     return (
         <motion.div
@@ -133,16 +133,10 @@ const EditProfile = ({ onClose }) => {
                 <h2 className="text-3xl font-bold text-green-700 text-center ">Edit Store Profile</h2>
                 {loading && (
                     <div className="flex items-center ml-2">
-                        <RotatingLines
-                            visible={true}
-                            height="48"
-                            width="48"
-                            color="grey"
-                            strokeWidth="5"
-                            animationDuration="0.75"
-                            ariaLabel="rotating-lines-loading"
-                            wrapperStyle={{}}
-                            wrapperClass=""
+                        <FadeLoader
+                            height={5}
+                            speedMultiplier={2}
+                            width={5}
                         />
                     </div>
                 )}
@@ -196,8 +190,8 @@ const FileUpload = ({ label, name, file, onChange }) => (
         <label className="block text-sm font-semibold text-gray-700">{label}</label>
         {file && (typeof file === "string" ? (
             <div className="mb-2">
-                <a href={"https://ryupunch.com/leafly/uploads/vendors/" +file} target="_blank" rel="noopener noreferrer" className="text-blue-600 bg-blue-100 p-1 rounded" style={{fontSize:"10px"}}>
-                {file}
+                <a href={"https://ryupunch.com/leafly/uploads/vendors/" + file} target="_blank" rel="noopener noreferrer" className="text-blue-600 bg-blue-100 p-1 rounded" style={{ fontSize: "10px" }}>
+                    {file}
                 </a>
             </div>
         ) : (
@@ -205,7 +199,7 @@ const FileUpload = ({ label, name, file, onChange }) => (
                 <div className="mb-2 text-sm text-gray-600">{file.name}</div>
             )
         ))}
-        
+
         <div className="relative flex items-center gap-2 p-3 border rounded-lg bg-gray-50 cursor-pointer hover:bg-gray-100 transition">
             <span className="text-sm text-gray-600">{file ? (typeof file === "string" ? "Change file" : file.name) : "No file chosen"}</span>
             <input type="file" name={name} className="absolute inset-0 opacity-0 cursor-pointer" onChange={onChange} />

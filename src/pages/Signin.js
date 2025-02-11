@@ -4,7 +4,7 @@ import { toast } from "react-hot-toast";
 import { useNavigate, Link } from "react-router-dom";
 import Loader from "../components/Loader";
 import { useAuth } from "../context/AuthContext";
-import { RotatingLines } from "react-loader-spinner";
+import { FadeLoader } from "react-spinners";
 
 const Signin = () => {
   const [formData, setFormData] = useState({
@@ -84,24 +84,16 @@ const Signin = () => {
             className={`w-full py-3 text-white flex items-center justify-center font-medium rounded-lg transition-all ${isFormValid && !loading ? "green-btn" : "green-btn-disabled cursor-not-allowed"
               }`}
           >
-            {loading ? 
-            <div className="flex items-center justify-center">
-              Signing in..   
-            <RotatingLines
-              visible={true}
-              height="24"
-              width="24"
-              color="#ffffff"
-              className="bg-white text-white"
-              strokeWidth="5"
-              animationDuration="0.75"
-              ariaLabel="rotating-lines-loading"
-              wrapperStyle={{ color: "white" }}
-              wrapperClass="text-white bg-white mx-auto ml-1"
-              strokeColor ="#ffffff"
-            />
-            </div>
-             : "Sign In"}
+            {loading ? (
+  <div className="flex items-center justify-center gap-2">
+    <span>Signing in...</span>
+    
+  </div>
+) : (
+  "Sign In"
+)}
+
+
           </button>
         </form>
         <p className="text-center mt-4">
