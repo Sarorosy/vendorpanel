@@ -10,6 +10,7 @@ import './output.css';
 import './style.css';
 import ProductsPage from "./pages/ProductsPage";
 import StoreProfile from "./pages/StoreProfile";
+import VendorsMap from "./pages/VendorsMap";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -45,6 +46,7 @@ const App = () => {
             <Route path="orders" element={<Orders />} />
             <Route path="profile" element={<StoreProfile />} />
             <Route path="products" element={<ProductsPage />} />
+            <Route path="map" element={<VendorsMap />} />
           </Route>
 
           {/* Fallback Route */}

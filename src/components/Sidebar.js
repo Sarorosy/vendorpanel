@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Home, Package, ChevronLeft, ChevronRight, LogOut, Store, BadgeCheck } from "lucide-react";
+import { Home, Package, ChevronLeft, ChevronRight, LogOut, Store, BadgeCheck, Map, MapPin } from "lucide-react";
 import cannabislogo from "../assets/weedlogo.svg";
 import { useAuth } from "../context/AuthContext";
 
@@ -72,7 +72,7 @@ const LocationComponent = () => {
       className="text-xs p-2 text-center bg-green-800 rounded-md cursor-pointer hover:bg-green-700"
       onClick={getLocation}
     >
-      {location ? `📍 ${location.lat}, ${location.lng}` : error || "Fetching location..."}
+      {location ?  <div className="flex items-center justify-center space-x-2"> <MapPin size={18}/> {location.lat + ","+ location.lng} </div> : error || "Fetching location..."}
     </div>
   );
 };
@@ -127,6 +127,14 @@ const Sidebar = () => {
             className={`${isExpanded ? "pl-2" : "justify-center"} flex items-center gap-3 text-sm p-2 rounded-lg hover:bg-green-900 transition-all duration-200 hover:pl-5`}
           >
             <Store size={18} /> {isExpanded && "Manage Store"}
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/map"
+            className={`${isExpanded ? "pl-2" : "justify-center"} flex items-center gap-3 text-sm p-2 rounded-lg hover:bg-green-900 transition-all duration-200 hover:pl-5`}
+          >
+            <Map size={18} /> {isExpanded && "Map"}
           </Link>
         </li>
       </ul>

@@ -61,7 +61,7 @@ const StoreProfile = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
             <div className="flex items-center mb-2 md:mb-0">
               <h1 className="text-3xl font-bold mr-2">{user.company_name}</h1>
-              {storeData.isVerified && <BadgeCheck className="w-6 h-6 text-green-800 rounded-full bg-green-100" />}
+              {user.status == 1 && <BadgeCheck className="w-6 h-6 text-green-800 rounded-full bg-green-100" />}
             </div>
             <button onClick={handleEditClick} className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
               <Edit className="w-4 h-4 mr-2" />
