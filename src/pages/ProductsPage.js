@@ -11,12 +11,14 @@ import { useAuth } from "../context/AuthContext";
 import StrainDetails from "./StrainDetails";
 import { AnimatePresence } from "framer-motion";
 import axios from "axios";
+import EditStrain from "./EditStrain";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [addFormOpen, setAddFormOpen] = useState(false);
   const [detailsTabOpen, setDetailsTabOpen] = useState(false);
+  const [editTabOpen, setEditTabOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [activeTab, setActiveTab] = useState("Live");
   const { user } = useAuth();
@@ -122,7 +124,8 @@ const ProductsPage = () => {
   };
 
   const handleEdit = (id) => {
-    toast.success(`Editing product ID: ${id}`);
+    setSelectedId(id);
+    setEditTabOpen(true);
   };
 
   const handleDelete = (id) => {
@@ -276,6 +279,9 @@ const ProductsPage = () => {
 
         {detailsTabOpen && (
           <StrainDetails strainId={selectedId} onClose={() => { setDetailsTabOpen(false) }} />
+        )}
+        {editTabOpen && (
+          <EditStrain strainId={selectedId} onClose={() => { setEditTabOpen(false) }} finalfunction={fetchProducts} />
         )}
       </AnimatePresence>
     </div>

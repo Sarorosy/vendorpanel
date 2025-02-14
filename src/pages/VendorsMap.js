@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -28,17 +28,19 @@ const VendorsMap = () => {
         { id: 3 ,company_name: "Botanic Beauties", latitude: 9.9252, longitude: 78.1198 }, // Madurai
         { id: 3 ,company_name: "Vibrant Gardens", latitude: 13.3392, longitude: 77.113 }, // Tumkur
     ]);
-    
 
     const [location, setLocation] = useState(null);
     const [error, setError] = useState(null);
     const [selectedVendor, setSelectedVendor] = useState(null);
-    const [vendorDetailsOpen , setVendorDetailsOpen] = useState(false);
-
-    const [mapType, setMapType] = useState("streets"); // Default Map Type
-
+    const [vendorDetailsOpen, setVendorDetailsOpen] = useState(false);
+    const [mapCenter, setMapCenter] = useState([20.5937, 78.9629]); // Default map center
+    const mapRef = useRef(null);
+    const [mapType, setMapType] = useState("streets");
+    const [viewSet, setViewSet] = useState(false); // Track if view has been set
+    
     const LocationCircle = ({ location }) => {
         const map = useMap();
+        
     
         useEffect(() => {
             if (location) {
@@ -46,19 +48,22 @@ const VendorsMap = () => {
                     color: 'blue',
                     fillColor: '#3388ff',
                     fillOpacity: 0.2,
-                    radius: 5000, // 5km radius
+                    radius: 5000,
                 }).addTo(map);
     
-                map.setView([location.latitude, location.longitude], 10);
+                // Set view only once
+                if (!viewSet) {
+                    map.setView([location.latitude, location.longitude], 10);
+                    setViewSet(true);
+                }
     
-                return () => {
-                    map.removeLayer(circle);
-                };
+                return () => map.removeLayer(circle);
             }
-        }, [location, map]);
+        }, [location, map, viewSet]);
     
         return null;
     };
+    
 
     useEffect(() => {
         if (navigator.geolocation) {
@@ -77,7 +82,6 @@ const VendorsMap = () => {
         }
     }, []);
 
-    // Fix Leaflet marker issue
     delete L.Icon.Default.prototype._getIconUrl;
     L.Icon.Default.mergeOptions({
         iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -85,18 +89,27 @@ const VendorsMap = () => {
         shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
     });
 
-    // Map Tile URLs
     const tileLayers = {
         streets: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        terrain: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}",
-        hybrid: "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+        hybrid: "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
     };
 
-    const handlePopupClick = (vendor) =>{
+    const handlePopupClick = (vendor) => {
+        if (mapRef.current) {
+            setMapCenter([vendor.latitude, vendor.longitude]); // Move the map to the vendor
+            mapRef.current.flyTo([vendor.latitude, vendor.longitude], 12); // Smooth zoom-in effect
+        }
+
         setSelectedVendor(vendor);
         setVendorDetailsOpen(true);
-    }
+    };
+
+    useEffect(() => {
+        if (mapRef.current && !vendorDetailsOpen) {
+            mapRef.current.setView(mapCenter, mapRef.current.getZoom());
+        }
+    }, [vendorDetailsOpen]);
 
     return (
         <div style={{ position: 'relative' }}>
@@ -113,7 +126,7 @@ const VendorsMap = () => {
                     background: "#fff",
                     borderRadius: "5px",
                     border: "1px solid #ccc",
-                    cursor: "pointer"
+                    cursor: "pointer",
                 }}
                 className='form-control form-select w-24 w-25'
             >
@@ -123,29 +136,44 @@ const VendorsMap = () => {
             </select>
 
             {/* Leaflet Map */}
-            <MapContainer center={[20.5937, 78.9629]} zoom={5} style={{ height: '600px', width: '100%' }} attributionControl={false}>
+            <MapContainer
+                center={mapCenter}
+                zoom={5}
+                style={{ height: '600px', width: '100%' }}
+                attributionControl={false}
+                whenCreated={(map) => { mapRef.current = map; }}
+            >
                 <TileLayer url={tileLayers[mapType]} attribution="&copy; OpenStreetMap contributors" />
-                {vendors.map((vendor, index) => (
-                    <Marker  key={index} position={[vendor.latitude, vendor.longitude]}>
-                        <Popup >
-                            <div className='bg-white cursor-pointer px-2 py-1 font-semibold' onClick={()=>{handlePopupClick(vendor)}}>
+
+                {vendors.map((vendor) => (
+                    <Marker key={vendor.id} position={[vendor.latitude, vendor.longitude]}>
+                        <Popup autoPan={true}>
+                            <div
+                                className='bg-white cursor-pointer px-2 py-1 font-semibold'
+                                onClick={() => handlePopupClick(vendor)}
+                            >
                                 {vendor.company_name}
                             </div>
                         </Popup>
                     </Marker>
                 ))}
+
                 {location && (
                     <>
                         <LocationCircle location={location} />
                         <Marker position={[location.latitude, location.longitude]}>
-                            <Popup><b>Your Location</b></Popup>
+                            <Popup autoPan={true}><b>Your Location</b></Popup>
                         </Marker>
                     </>
                 )}
             </MapContainer>
+
             <AnimatePresence>
                 {vendorDetailsOpen && (
-                    <StoreProfileForUser storeId={selectedVendor.id} onClose={()=>{setVendorDetailsOpen(false)}}/>
+                    <StoreProfileForUser
+                        storeId={selectedVendor.id}
+                        onClose={() => setVendorDetailsOpen(false)}
+                    />
                 )}
             </AnimatePresence>
         </div>
