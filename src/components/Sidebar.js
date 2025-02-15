@@ -4,10 +4,13 @@ import { Home, Package, ChevronLeft, ChevronRight, LogOut, Store, BadgeCheck, Ma
 import cannabislogo from "../assets/weedlogo.svg";
 import { useAuth } from "../context/AuthContext";
 import ConfirmationModal from "./ConfirmationModal";
+import { AnimatePresence } from "framer-motion";
+import NotificationDiv from "./NotificationDiv";
 
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [notificationsDivOpen, setNotificationDivOpen] = useState(false);
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
@@ -76,7 +79,7 @@ const Sidebar = () => {
         </li>
         {/* notification div here with expanded ? : */}
         <li className="relative bg-gray-200 text-gray-900 p-2 rounded-lg hover:bg-gray-300 transition-all duration-200 mx-1">
-    <div onClick={() => console.log("notifications")} className={`${isExpanded ? "justify-between" : " justify-center"} relative cursor-pointer flex items-center `}>
+    <div onClick={() => setNotificationDivOpen(true)} className={`${isExpanded ? "justify-between" : " justify-center"} relative cursor-pointer flex items-center `}>
       <span className="text-sm">{isExpanded ? "Notifications" : ""}</span>
       <div className="flex items-center space-x-2">
         <Bell size={20} className="cursor-pointer hover:text-gray-900 transition duration-200" />
@@ -112,6 +115,13 @@ const Sidebar = () => {
           <LogOut size={18} /> {isExpanded && "Logout"}
         </button>
       </div>
+
+      <AnimatePresence>
+        {notificationsDivOpen && (
+          <NotificationDiv onClose={ () =>{ setNotificationDivOpen(false) } } />
+        )}
+        
+      </AnimatePresence>
     </div>
   );
 };

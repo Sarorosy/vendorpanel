@@ -11,7 +11,12 @@ export default function Dashboard() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        getLocation();
+        if(user.latitude){
+            fetchLocationName(user.latitude, user.longitude);
+        }else{
+            getLocation();
+        }
+        console.log("user is" + JSON.stringify(user))
         fetchDashboard();
     }, []);
 
