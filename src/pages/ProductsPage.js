@@ -12,6 +12,7 @@ import StrainDetails from "./StrainDetails";
 import { AnimatePresence } from "framer-motion";
 import axios from "axios";
 import EditStrain from "./EditStrain";
+import topsellericon from '../assets/topseller.svg';
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -152,7 +153,16 @@ const ProductsPage = () => {
         return `<img src='https://placehold.co/50x50?text=No+Image' class='w-12 h-12 rounded-lg'/>`;
       },
     },
-    { title: "Name", data: "name" },
+    {
+      title: "Name",
+      data: "name",
+      render: (data, type, row) => `
+        <div style="display: flex; align-items: center; flex-wrap: wrap;">
+          ${row.name}
+          ${row.topseller == 1 ? `<img src="${topsellericon}" alt="Top Seller" style="margin-left: 8px; width: 20px; height: 20px;" title="Top Seller" />` : ""}
+        </div>
+      `,
+    },    
     {
       title: "Created On",
       data: "created_at",

@@ -1,4 +1,4 @@
-import { useState, useEffect,useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { X, Plus, Trash } from "lucide-react";
 import "select2/dist/css/select2.css";
@@ -7,7 +7,7 @@ import $ from "jquery";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 
-const AddProduct = ({ onClose , finalfunction}) => {
+const AddProduct = ({ onClose, finalfunction }) => {
   const [formData, setFormData] = useState({
     name: "",
     images: [null], // Start with one file input
@@ -23,15 +23,15 @@ const AddProduct = ({ onClose , finalfunction}) => {
 
   const [description, setDescription] = useState("");
 
-    const handleRadioChange = (e) => {
-        handleChange(e);
-        const descriptions = {
-            indica: "🌙 Indica – Relaxing, body high, good for nighttime use",
-            sativa: "☀️ Sativa – Energizing, cerebral high, good for daytime use",
-            hybrid: "🔄 Hybrid – A mix of both Indica and Sativa, with varying effects",
-        };
-        setDescription(descriptions[e.target.value] || "");
+  const handleRadioChange = (e) => {
+    handleChange(e);
+    const descriptions = {
+      indica: "🌙 Indica – Relaxing, body high, good for nighttime use",
+      sativa: "☀️ Sativa – Energizing, cerebral high, good for daytime use",
+      hybrid: "🔄 Hybrid – A mix of both Indica and Sativa, with varying effects",
     };
+    setDescription(descriptions[e.target.value] || "");
+  };
   const feelingsRef = useRef(null);
   const negativesRef = useRef(null);
   const helpsWithRef = useRef(null);
@@ -41,29 +41,29 @@ const AddProduct = ({ onClose , finalfunction}) => {
   useEffect(() => {
     $(feelingsRef.current)
       .select2({ placeholder: "Select Feelings", multiple: true })
-      .on("change", (e) => 
+      .on("change", (e) =>
         setFormData((prev) => ({ ...prev, feelings: $(e.target).val() || [] }))
       );
-  
+
     $(negativesRef.current)
       .select2({ placeholder: "Select Negative Effects", multiple: true })
-      .on("change", (e) => 
+      .on("change", (e) =>
         setFormData((prev) => ({ ...prev, negatives: $(e.target).val() || [] }))
       );
-  
+
     $(helpsWithRef.current)
       .select2({ placeholder: "Select Benefits", multiple: true })
-      .on("change", (e) => 
+      .on("change", (e) =>
         setFormData((prev) => ({ ...prev, helps_with: $(e.target).val() || [] }))
       );
-  
+
     return () => {
       $(feelingsRef.current).select2("destroy");
       $(negativesRef.current).select2("destroy");
       $(helpsWithRef.current).select2("destroy");
     };
   }, []);
-  
+
 
   // Handle text input change
   const handleChange = (e) => {
@@ -95,8 +95,8 @@ const AddProduct = ({ onClose , finalfunction}) => {
 
     // Ensure all file inputs are filled
     if (formData.images.some(img => !img)) {
-        alert("Please upload all files before submitting.");
-        return;
+      alert("Please upload all files before submitting.");
+      return;
     }
 
     // Create FormData object for file uploads
@@ -115,35 +115,35 @@ const AddProduct = ({ onClose , finalfunction}) => {
 
     // Append images one by one
     formData.images.forEach((image, index) => {
-        formDataToSend.append(`images[]`, image); // Backend should accept 'images[]'
+      formDataToSend.append(`images[]`, image); // Backend should accept 'images[]'
     });
 
     try {
-        const response = await fetch("https://ryupunch.com/leafly/api/Product/add_product", {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${user.token}`, // Send Bearer token
-            },
-            body: formDataToSend, // Send FormData
-        });
+      const response = await fetch("https://ryupunch.com/leafly/api/Product/add_product", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${user.token}`, // Send Bearer token
+        },
+        body: formDataToSend, // Send FormData
+      });
 
-        const result = await response.json();
+      const result = await response.json();
 
-        if (result.status) {
-            toast.success("Product added successfully!");
-            onClose();
-            console.log("API Response:", result);
-        } else {
-            alert(`Error: ${result.message}`);
-        }
+      if (result.status) {
+        toast.success("Product added successfully!");
+        onClose();
+        console.log("API Response:", result);
+      } else {
+        alert(`Error: ${result.message}`);
+      }
     } catch (error) {
-        console.error("Error submitting form:", error);
-        alert("Something went wrong. Please try again.");
-    }finally{
+      console.error("Error submitting form:", error);
+      alert("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
       finalfunction();
     }
-};
+  };
 
 
   return (
@@ -184,16 +184,16 @@ const AddProduct = ({ onClose , finalfunction}) => {
               )}
               {index == 0 && (
                 <button
-                type="button"
-                onClick={addFileInput}
-                className="flex items-center gap-1 p-2 bg-green-600 text-white rounded-full hover:bg-green-700"
-              >
-                <Plus size={16} /> 
-              </button>
+                  type="button"
+                  onClick={addFileInput}
+                  className="flex items-center gap-1 p-2 bg-green-600 text-white rounded-full hover:bg-green-700"
+                >
+                  <Plus size={16} />
+                </button>
               )}
             </div>
           ))}
-          
+
         </div>
 
         <textarea name="description" placeholder="Description" className="input h-24" onChange={handleChange} required></textarea>
@@ -202,26 +202,27 @@ const AddProduct = ({ onClose , finalfunction}) => {
           <input type="number" name="cbg" placeholder="CBG %" className="input" onChange={handleChange} required />
         </div>
         <div>
-            <label className="block font-semibold mb-2">Category</label>
-            <div className="flex items-center  space-x-2">
-                {["Indica", "Sativa", "Hybrid"].map((type) => (
-                    <label key={type} className="flex items-center space-x-2">
-                        <input
-                            type="radio"
-                            name="dominant_terpene"
-                            value={type}
-                            onChange={handleRadioChange}
-                            className="w-4 h-4"
-                        />
-                        <span className="capitalize">{type}</span>
-                    </label>
-                ))}
-            </div>
-            {description && (
-                <small className="text-gray-500 text-xs mt-1 block">{description}</small>
-            )}
+          <label className="block font-semibold mb-2">Category</label>
+          <div className="flex items-center  space-x-2">
+            {["Indica", "Sativa", "Hybrid"].map((type) => (
+              <label key={type} className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  name="dominant_terpene"
+                  value={type}
+                  onChange={handleRadioChange}
+                  className="w-4 h-4"
+                />
+                <span className="capitalize">{type}</span>
+              </label>
+            ))}
+          </div>
+          {description && (
+            <small className="text-gray-500 text-xs mt-1 block">{description}</small>
+          )}
         </div>
         <input type="number" name="price" placeholder="Price per gram" className="input" onChange={handleChange} required />
+        
         <select ref={feelingsRef} name="feelings" className="input my-1 p-1" multiple required>
           <option value="Relaxed">Relaxed</option>
           <option value="Giggly">Giggly</option>
@@ -229,6 +230,11 @@ const AddProduct = ({ onClose , finalfunction}) => {
           <option value="Energetic">Energetic</option>
           <option value="Sleepy">Sleepy</option>
           <option value="Uplifted">Uplifted</option>
+          <option value="Euphoric">Euphoric</option>
+          <option value="Creative">Creative</option>
+          <option value="Focused">Focused</option>
+          <option value="Talkative">Talkative</option>
+          <option value="Hungry">Hungry</option>
         </select>
 
         <select ref={negativesRef} name="negatives" className="input my-1 p-1" multiple required>
@@ -238,6 +244,10 @@ const AddProduct = ({ onClose , finalfunction}) => {
           <option value="Paranoid">Paranoid</option>
           <option value="Dizzy">Dizzy</option>
           <option value="Headache">Headache</option>
+          <option value="Fatigue">Fatigue</option>
+          <option value="Nausea">Nausea</option>
+          <option value="Increased Heart Rate">Increased Heart Rate</option>
+          <option value="Forgetfulness">Forgetfulness</option>
         </select>
 
         <select ref={helpsWithRef} name="helps_with" className="input my-1 p-1" multiple required>
@@ -247,7 +257,15 @@ const AddProduct = ({ onClose , finalfunction}) => {
           <option value="Pain">Pain</option>
           <option value="Insomnia">Insomnia</option>
           <option value="Lack of Appetite">Lack of Appetite</option>
+          <option value="Inflammation">Inflammation</option>
+          <option value="PTSD">PTSD</option>
+          <option value="ADHD">ADHD</option>
+          <option value="Seizures">Seizures</option>
+          <option value="Nausea">Nausea</option>
+          <option value="Muscle Spasms">Muscle Spasms</option>
+          <option value="Migraines">Migraines</option>
         </select>
+
         <button type="submit" disabled={loading} onClick={handleSubmit} className="w-full p-3 bg-gradient-to-r from-green-500 to-green-700 text-white font-semibold rounded-lg shadow-md hover:opacity-90">
           Submit
         </button>

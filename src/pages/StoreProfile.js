@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { CheckCircle, MapPin, Edit, BadgeCheck } from "lucide-react";
+import { CheckCircle, MapPin, Edit, BadgeCheck, Globe } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import EditProfile from "./EditProfile";
 import { useAuth } from "../context/AuthContext";
+import topsellericon from '../assets/topseller.svg';
 
 const StoreProfile = () => {
     const [EditPageOpen, setEditPageOpen] = useState(false);
@@ -61,7 +62,7 @@ const StoreProfile = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
             <div className="flex items-center mb-2 md:mb-0">
               <h1 className="text-3xl font-bold mr-2">{user.company_name}</h1>
-              {user.status == 1 && <BadgeCheck className="w-6 h-6 text-green-800 rounded-full bg-green-100" />}
+              {user.topseller == 1 && <img src={topsellericon} className="w-10 h-auto ml-2" title="You're a TopSeller" />}
             </div>
             <button onClick={handleEditClick} className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
               <Edit className="w-4 h-4 mr-2" />
@@ -77,6 +78,9 @@ const StoreProfile = () => {
 
           {/* Store Description */}
           <p className="text-gray-600">{user.description}</p>
+          {user.website && (
+            <p className="flex items-center space-x-2 mt-2"><Globe size={18} className="mr-2 text-green-600 font-semibold" /><a href={user.website} target="_blank">{user.website}</a></p>
+          )}
         </div>
       </div>
       <AnimatePresence>

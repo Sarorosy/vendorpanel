@@ -12,6 +12,7 @@ const EditProfile = ({ onClose }) => {
         phone: "",
         address: "",
         gstNumber: "",
+        website: "",
         license: null,
         idProof: null,
         storeImage: null,
@@ -40,6 +41,7 @@ const EditProfile = ({ onClose }) => {
                     phone: result.data.phone || "",
                     address: result.data.location || "",
                     gstNumber: result.data.gst_number || "",
+                    website: result.data.website || "",
                     license: result.data.store_license || null,
                     idProof: result.data.id_proof || null,
                     storeImage: result.data.profile || null,
@@ -71,6 +73,10 @@ const EditProfile = ({ onClose }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if(!formData.storeName || !formData.description || !formData.phone || !formData.address || !formData.gstNumber ){
+            toast.error("Please Fill All Fields!")
+            return;
+        }
 
         const formDataToSend = new FormData();
         formDataToSend.append("company_name", formData.storeName);
@@ -78,6 +84,7 @@ const EditProfile = ({ onClose }) => {
         formDataToSend.append("phone", formData.phone);
         formDataToSend.append("location", formData.address);
         formDataToSend.append("gst_number", formData.gstNumber);
+        formDataToSend.append("website", formData.website);
 
         if (formData.license) formDataToSend.append("store_license", formData.license);
         if (formData.idProof) formDataToSend.append("id_proof", formData.idProof);
@@ -161,6 +168,10 @@ const EditProfile = ({ onClose }) => {
                 <div>
                     <label className="block text-sm font-semibold text-gray-700">GST Number</label>
                     <input type="text" name="gstNumber" className="w-full border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-green-600" onChange={handleChange} value={formData.gstNumber} required />
+                </div>
+                <div>
+                    <label className="block text-sm font-semibold text-gray-700">Website (optional)</label>
+                    <input type="text" name="website" className="w-full border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-green-600" onChange={handleChange} value={formData.website} />
                 </div>
 
                 {/* File Uploads */}
