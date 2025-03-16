@@ -21,6 +21,17 @@ const AddProduct = ({ onClose , finalfunction}) => {
     helps_with: [],
   });
 
+  const [description, setDescription] = useState("");
+
+    const handleRadioChange = (e) => {
+        handleChange(e);
+        const descriptions = {
+            indica: "🌙 Indica – Relaxing, body high, good for nighttime use",
+            sativa: "☀️ Sativa – Energizing, cerebral high, good for daytime use",
+            hybrid: "🔄 Hybrid – A mix of both Indica and Sativa, with varying effects",
+        };
+        setDescription(descriptions[e.target.value] || "");
+    };
   const feelingsRef = useRef(null);
   const negativesRef = useRef(null);
   const helpsWithRef = useRef(null);
@@ -190,7 +201,26 @@ const AddProduct = ({ onClose , finalfunction}) => {
           <input type="number" name="thc" placeholder="THC %" className="input" onChange={handleChange} required />
           <input type="number" name="cbg" placeholder="CBG %" className="input" onChange={handleChange} required />
         </div>
-        <input type="text" name="dominant_terpene" placeholder="Dominant Terpene" className="input" onChange={handleChange} required />
+        <div>
+            <label className="block font-semibold mb-2">Category</label>
+            <div className="flex items-center  space-x-2">
+                {["Indica", "Sativa", "Hybrid"].map((type) => (
+                    <label key={type} className="flex items-center space-x-2">
+                        <input
+                            type="radio"
+                            name="dominant_terpene"
+                            value={type}
+                            onChange={handleRadioChange}
+                            className="w-4 h-4"
+                        />
+                        <span className="capitalize">{type}</span>
+                    </label>
+                ))}
+            </div>
+            {description && (
+                <small className="text-gray-500 text-xs mt-1 block">{description}</small>
+            )}
+        </div>
         <input type="number" name="price" placeholder="Price per gram" className="input" onChange={handleChange} required />
         <select ref={feelingsRef} name="feelings" className="input my-1 p-1" multiple required>
           <option value="Relaxed">Relaxed</option>
